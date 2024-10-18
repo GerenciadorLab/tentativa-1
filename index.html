@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Geladeiras</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        form { margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>Gestão de Geladeiras</h1>
+    
+    <h2>Adicionar Geladeira</h2>
+    <form id="addGeladeiraForm">
+        <input type="text" placeholder="Nome da Geladeira" required>
+        <input type="text" placeholder="Localização" required>
+        <button type="submit">Adicionar</button>
+    </form>
+
+    <h2>Adicionar Prateleira</h2>
+    <form id="addPrateleiraForm">
+        <input type="number" placeholder="ID da Geladeira" required>
+        <input type="text" placeholder="Número da Prateleira" required>
+        <button type="submit">Adicionar</button>
+    </form>
+
+    <h2>Adicionar Amostra</h2>
+    <form id="addAmostraForm">
+        <input type="text" placeholder="Nome da Amostra" required>
+        <input type="number" placeholder="ID da Prateleira" required>
+        <button type="submit">Adicionar</button>
+    </form>
+
+    <h2>Deletar Amostra</h2>
+    <form id="deleteAmostraForm">
+        <input type="number" placeholder="ID da Amostra" required>
+        <button type="submit">Deletar</button>
+    </form>
+
+    <h2>Deletar Prateleira</h2>
+    <form id="deletePrateleiraForm">
+        <input type="number" placeholder="ID da Prateleira" required>
+        <button type="submit">Deletar</button>
+    </form>
+
+    <h2>Deletar Geladeira</h2>
+    <form id="deleteGeladeiraForm">
+        <input type="number" placeholder="ID da Geladeira" required>
+        <button type="submit">Deletar</button>
+    </form>
+
+    <h2>Buscar Amostras</h2>
+    <form id="searchAmostraForm">
+        <input type="text" placeholder="Nome da Amostra" required>
+        <button type="submit">Buscar</button>
+    </form>
+
+    <h2>Resultados</h2>
+    <pre id="result"></pre>
+    <ul id="sampleList"></ul>
+
+    <script>
+        const resultElement = document.getElementById('result');
+
+        async function fetchData(endpoint, method, body) {
+            const response = await fetch(endpoint, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+            return response.json(); 
+        }
+
+        document.getElementById('addGeladeiraForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = e.target.elements;
+            const data = { nome: inputs[0].value, localizacao: inputs[1].value };
+            const result = await fetchData('/geladeiras', 'POST', data);
+            resultElement.textContent = JSON.stringify(result, null, 2);
+        };
+
+        document.getElementById('addPrateleiraForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = e.target.elements;
+            const data = { id_geladeira: parseInt(inputs[0].value), numero: inputs[1].value };
+            const result = await fetchData('/prateleiras', 'POST', data);
+            resultElement.textContent = JSON.stringify(result, null, 2);
+        };
+
+        document.getElementById('addAmostraForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = e.target.elements;
+            const data = { nome: inputs[0].value, id_prateleira: parseInt(inputs[1].value) };
+            const result = await fetchData('/amostras', 'POST', data);
+            resultElement.textContent = JSON.stringify(result, null, 2);
+        };
+
+        document.getElementById('deleteAmostraForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = e.target.elements;
+            const result = await fetchData(`/amostras/${inputs[0].value}`, 'DELETE');
+            resultElement.textContent = JSON.stringify(result, null, 2);
+        };
+
+        document.getElementById('deletePrateleiraForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = e.target.elements;
+            const result = await fetchData(`/prateleiras/${inputs[0].value}`, 'DELETE');
+            resultElement.textContent = JSON.stringify(result, null, 2);
+        };
+
+        document.getElementById('deleteGeladeiraForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = e.target.elements;
+            const result = await fetchData(`/geladeiras/${inputs[0].value}`, 'DELETE');
+            resultElement.textContent = JSON.stringify(result, null, 2);
+        };
+
+        document.getElementById('searchAmostraForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputs = e.target.elements;
+            const result = await fetchData(`/amostras/search`, 'POST', { nome: inputs[0].value });
+            
+            // Atualiza a lista de amostras
+            const sampleListElement = document.getElementById('sampleList');
+            sampleListElement.innerHTML = ''; // Limpa a lista antes de adicionar novos itens
+
+            result.forEach(amostra => {
+                const li = document.createElement('li');
+                li.textContent = `Nome: ${amostra.nome}, Geladeira: ${amostra.geladeira}, Prateleira: ${amostra.prateleira}`;
+                sampleListElement.appendChild(li);
+            });
+
+            resultElement.textContent = JSON.stringify(result, null, 2);
+        };
+    </script>
+</body>
+</html>
